@@ -52,6 +52,7 @@ function showDemoResults() {
         searchBtn.innerHTML = 'Find Places Along Route';
     }
 
+    // Use reliable image URLs
     allPlaces = [
         {
             name: 'Ichiran Ramen Shibuya',
@@ -60,7 +61,7 @@ function showDemoResults() {
             price_level: 2,
             vicinity: 'Shibuya, Tokyo',
             opening_hours: { open_now: true },
-            photos: [{ getUrl: () => 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80' }],
+            photos: [{ getUrl: () => 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80' }],
             geometry: { location: { lat: () => 35.6625, lng: () => 139.7003 } }
         },
         {
@@ -70,8 +71,28 @@ function showDemoResults() {
             price_level: 0,
             vicinity: 'Yoyogi Park, Shibuya',
             opening_hours: { open_now: true },
-            photos: [{ getUrl: () => 'https://images.unsplash.com/photo-1624253321890-36b0c1c777f6?w=800&q=80' }],
+            photos: [{ getUrl: () => 'https://images.unsplash.com/photo-1624253321890-36b0c1c777f6?auto=format&fit=crop&w=800&q=80' }],
             geometry: { location: { lat: () => 35.6764, lng: () => 139.6993 } }
+        },
+        {
+            name: 'Sushi Dai Tsukiji',
+            category: 'restaurant',
+            rating: 4.7,
+            price_level: 3,
+            vicinity: 'Tsukiji Market, Tokyo',
+            opening_hours: { open_now: true },
+            photos: [{ getUrl: () => 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?auto=format&fit=crop&w=800&q=80' }],
+            geometry: { location: { lat: () => 35.6655, lng: () => 139.7704 } }
+        },
+        {
+            name: 'Tokyo Skytree',
+            category: 'tourist_attraction',
+            rating: 4.6,
+            price_level: 2,
+            vicinity: 'Sumida, Tokyo',
+            opening_hours: { open_now: true },
+            photos: [{ getUrl: () => 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=800&q=80' }],
+            geometry: { location: { lat: () => 35.7101, lng: () => 139.8107 } }
         }
     ];
 
@@ -98,8 +119,8 @@ function displayFilteredResults() {
         const lng = typeof place.geometry.location.lng === 'function' ? place.geometry.location.lng() : place.geometry.location.lng;
 
         const imageUrl = place.photos && place.photos.length && place.photos[0].getUrl
-            ? place.photos[0].getUrl()
-            : 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80';
+    ? place.photos[0].getUrl()
+    : 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=800&q=80';
 
         return `
         <div class="place-card">

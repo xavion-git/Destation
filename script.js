@@ -7,8 +7,8 @@
         var placesService = null;
         var allPlaces = [];
         
-        var API_KEY = 'AIzaSyDDK06gPB6hI8lOU97QFK2tpgxdTIA_ATU';
-        var hasApiKey = API_KEY !== 'AIzaSyDDK06gPB6hI8lOU97QFK2tpgxdTIA_ATU';
+        var API_KEY = 'AIzaSyBZjgrXCPheK5GZuTanUrt4zfQBIksfkwE';
+        var hasApiKey = API_KEY !== '';
         
         function getUserLocation() {
             if (navigator.geolocation) {

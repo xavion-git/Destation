@@ -14,7 +14,8 @@ let allPlaces = [];
 // 2. Restrict this API key to your domain only in Google Cloud Console
 // 3. Use environment variables with a build tool (Vite, Webpack)
 const API_KEY = 'AIzaSyBZjgrXCPheK5GZuTanUrt4zfQBIksfkwE';
-const hasApiKey = API_KEY && API_KEY !== '' && !API_KEY.includes('AIzaSyBZjgrXCPheK5GZuTanUrt4zfQBIksfkwE');
+// FIXED: Changed the logic - check if it's not the placeholder
+const hasApiKey = API_KEY && API_KEY !== '' && !API_KEY.includes('YOUR_API_KEY_HERE');
 
 // Fix the hoisting issue - declare functions first
 function showToast(message, type = 'info') {
@@ -46,7 +47,10 @@ function showDemoResults() {
     if (filtersEl) filtersEl.style.display = 'flex';
     
     const searchBtn = document.getElementById('searchBtn');
-    if (searchBtn) searchBtn.disabled = false;
+    if (searchBtn) {
+        searchBtn.disabled = false;
+        searchBtn.innerHTML = 'Find Places Along Route';
+    }
 
     allPlaces = [
         {
@@ -88,7 +92,7 @@ function displayFilteredResults() {
     resultsDiv.innerHTML = filtered.map(place => {
         const isOpen = place.opening_hours ? place.opening_hours.open_now : true;
         const priceLevel = place.price_level || 0;
-        const priceStr = priceLevel === 0 ? 'Free' : '¥Yen'.repeat(priceLevel);
+        const priceStr = priceLevel === 0 ? 'Free' : '¥'.repeat(priceLevel); // Fixed price display
 
         const lat = typeof place.geometry.location.lat === 'function' ? place.geometry.location.lat() : place.geometry.location.lat;
         const lng = typeof place.geometry.location.lng === 'function' ? place.geometry.location.lng() : place.geometry.location.lng;
@@ -157,6 +161,7 @@ if ('serviceWorker' in navigator) {
       })
       .catch(registrationError => {
         console.log('SW registration failed: ', registrationError);
+        // You can optionally show a toast that offline mode won't work
       });
   });
 }
@@ -181,7 +186,8 @@ function getUserLocation() {
                 locInput.value = `${userLat.toFixed(4)}, ${userLng.toFixed(4)}`;
             }
 
-            if (map) {
+            // Only add marker if Google Maps is loaded and available
+            if (map && typeof google !== 'undefined' && google.maps) {
                 map.setCenter({ lat: userLat, lng: userLng });
                 // Add a marker for user location
                 new google.maps.Marker({
@@ -438,6 +444,17 @@ function displayRealResults() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing app...');
     
+    // Add event listeners
+    const locationBtn = document.getElementById('locationBtn');
+    if (locationBtn) {
+        locationBtn.addEventListener('click', getUserLocation);
+    }
+    
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', searchRoute);
+    }
+    
     getUserLocation();
     
     // Add Enter key support for destination input
@@ -467,3 +484,10 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Running in demo mode', 'info');
     }
 });
+
+// Make functions globally available
+window.getUserLocation = getUserLocation;
+window.searchRoute = searchRoute;
+window.filterPlaces = filterPlaces;
+window.navigate = navigate;
+window.initMap = initMap;

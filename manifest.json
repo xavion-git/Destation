@@ -1,18 +1,19 @@
 {
   "name": "Xavions Japan Route Finder",
-  "short_name": "Des Tracker",
-  "start_url": "/index.html",
+  "short_name": "Japan Route Finder",
+  "description": "Discover food & activities along your route in Japan",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#031979",
   "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "https://via.placeholder.com/192/031979/FFFFFF?text=🗾",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "https://via.placeholder.com/512/031979/FFFFFF?text=🗾",
       "sizes": "512x512",
       "type": "image/png"
     }

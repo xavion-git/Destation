@@ -9,133 +9,44 @@ let directionsRenderer = null;
 let placesService = null;
 let allPlaces = [];
 
+// IMPORTANT: For production, you MUST:
+// 1. Create a backend proxy server, OR
+// 2. Restrict this API key to your domain only in Google Cloud Console
+// 3. Use environment variables with a build tool (Vite, Webpack)
 const API_KEY = 'AIzaSyBZjgrXCPheK5GZuTanUrt4zfQBIksfkwE';
-const hasApiKey = API_KEY !== '';
+const hasApiKey = API_KEY && API_KEY !== '' && !API_KEY.includes('AIzaSyBZjgrXCPheK5GZuTanUrt4zfQBIksfkwE');
 
-function getUserLocation() {
-    if (!navigator.geolocation) return;
-
-    const locInput = document.getElementById('currentLocation');
-    locInput.value = 'Getting location...';
-
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            userLat = position.coords.latitude;
-            userLng = position.coords.longitude;
-            locInput.value = `${userLat.toFixed(4)}, ${userLng.toFixed(4)}`;
-
-            if (map) map.setCenter({ lat: userLat, lng: userLng });
-
-            alert('✅ Location found!');
-        },
-        () => {
-            alert('❌ Please enable location permissions');
-            locInput.value = '';
-        }
-    );
-}
-
-function initMap() {
-    if (!hasApiKey) return;
-
-    map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 14,
-        center: { lat: 35.6762, lng: 139.6503 },
-        mapTypeControl: false,
-        streetViewControl: false
-    });
-
-    directionsService = new google.maps.DirectionsService();
-    directionsRenderer = new google.maps.DirectionsRenderer({ map: map, suppressMarkers: false });
-
-    // TODO: For new apps, consider migrating to google.maps.places.Place
-    placesService = new google.maps.places.PlacesService(map);
-
-    const warningEl = document.getElementById('apiWarning');
-    if (warningEl) warningEl.style.display = 'none';
-}
-
-function searchRoute() {
-    const destination = document.getElementById('destination').value;
-    if (!destination) return alert('Please enter a destination');
-    if (!userLat || !userLng) return alert('Please enable location access first');
-
-    document.getElementById('emptyState').style.display = 'none';
-    const loadingEl = document.getElementById('loading');
-    loadingEl.style.display = 'block';
-    document.getElementById('searchBtn').disabled = true;
-
-    if (!hasApiKey) {
-        setTimeout(showDemoResults, 1500);
-        return;
-    }
-
-    document.getElementById('mapContainer').style.display = 'block';
-
-    const request = {
-        origin: { lat: userLat, lng: userLng },
-        destination: destination,
-        travelMode: 'WALKING'
-    };
-
-    directionsService.route(request, (result, status) => {
-        if (status === 'OK') {
-            directionsRenderer.setDirections(result);
-            searchPlacesAlongRoute(result.routes[0]);
-        } else {
-            alert('Could not find route');
-            loadingEl.style.display = 'none';
-            document.getElementById('searchBtn').disabled = false;
-        }
-    });
-}
-
-function searchPlacesAlongRoute(route) {
-    allPlaces = [];
-    const waypoints = route.overview_path;
-    const searchRadius = 500;
-    const samplePoints = [];
-    const step = Math.floor(waypoints.length / 5);
-
-    for (let i = 0; i < waypoints.length; i += step) samplePoints.push(waypoints[i]);
-
-    let searchesCompleted = 0;
-    const totalSearches = samplePoints.length * 2;
-
-    samplePoints.forEach((point) => {
-        ['restaurant', 'tourist_attraction'].forEach((type) => {
-            placesService.nearbySearch({ location: point, radius: searchRadius, type: type }, (results, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    results.forEach((place) => {
-                        place.category = type;
-                        if (!placeExists(place.place_id)) allPlaces.push(place);
-                    });
-                }
-                searchesCompleted++;
-                if (searchesCompleted === totalSearches) displayRealResults();
-            });
-        });
-    });
-}
-
-function placeExists(placeId) {
-    return allPlaces.some((p) => p.place_id === placeId);
-}
-
-function displayRealResults() {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('filters').style.display = 'flex';
-    document.getElementById('searchBtn').disabled = false;
-
-    allPlaces.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    allPlaces = allPlaces.slice(0, 30);
-    displayFilteredResults();
+// Fix the hoisting issue - declare functions first
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
 }
 
 function showDemoResults() {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('filters').style.display = 'flex';
-    document.getElementById('searchBtn').disabled = false;
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) loadingEl.style.display = 'none';
+    
+    const filtersEl = document.getElementById('filters');
+    if (filtersEl) filtersEl.style.display = 'flex';
+    
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) searchBtn.disabled = false;
 
     allPlaces = [
         {
@@ -237,14 +148,322 @@ function navigate(lat, lng, name) {
     window.open(url, '_blank');
 }
 
-window.onload = function() {
-    getUserLocation();
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('SW registered: ', registration);
+      })
+      .catch(registrationError => {
+        console.log('SW registration failed: ', registrationError);
+      });
+  });
+}
 
-    if (hasApiKey) {
+function getUserLocation() {
+    if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser');
+        return;
+    }
+
+    const locInput = document.getElementById('currentLocation');
+    if (locInput) {
+        locInput.value = 'Getting location...';
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            userLat = position.coords.latitude;
+            userLng = position.coords.longitude;
+            
+            if (locInput) {
+                locInput.value = `${userLat.toFixed(4)}, ${userLng.toFixed(4)}`;
+            }
+
+            if (map) {
+                map.setCenter({ lat: userLat, lng: userLng });
+                // Add a marker for user location
+                new google.maps.Marker({
+                    position: { lat: userLat, lng: userLng },
+                    map: map,
+                    title: 'Your Location',
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 10,
+                        fillColor: '#4285F4',
+                        fillOpacity: 1,
+                        strokeColor: '#FFFFFF',
+                        strokeWeight: 2
+                    }
+                });
+            }
+
+            showToast('✅ Location found!', 'success');
+        },
+        (error) => {
+            console.error('Geolocation error:', error);
+            let errorMessage = 'Could not get your location.';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage = 'Location permission denied. Please enable in settings.';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage = 'Location information unavailable.';
+                    break;
+                case error.TIMEOUT:
+                    errorMessage = 'Location request timed out.';
+                    break;
+            }
+            showToast(errorMessage, 'error');
+            if (locInput) {
+                locInput.value = '';
+            }
+        },
+        { 
+            enableHighAccuracy: true, 
+            timeout: 10000, 
+            maximumAge: 0 
+        }
+    );
+}
+
+function initMap() {
+    if (!hasApiKey) {
+        console.warn('Google Maps API key not configured');
+        showToast('Running in demo mode - no Google Maps API key', 'warning');
+        return;
+    }
+
+    try {
+        const mapElement = document.getElementById('map');
+        if (!mapElement) {
+            console.error('Map element not found');
+            return;
+        }
+
+        map = new google.maps.Map(mapElement, {
+            zoom: 14,
+            center: { lat: 35.6762, lng: 139.6503 },
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: true,
+            zoomControl: true,
+            styles: [
+                {
+                    featureType: "poi",
+                    elementType: "labels",
+                    stylers: [{ visibility: "off" }]
+                }
+            ]
+        });
+
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer({ 
+            map: map, 
+            suppressMarkers: false,
+            polylineOptions: {
+                strokeColor: '#4285F4',
+                strokeWeight: 4,
+                strokeOpacity: 0.7
+            }
+        });
+
+        placesService = new google.maps.places.PlacesService(map);
+
+        console.log('Google Maps initialized successfully');
+
+    } catch (error) {
+        console.error('Failed to initialize map:', error);
+        showToast('Failed to load map. Please refresh.', 'error');
+    }
+}
+
+function searchRoute() {
+    const destinationInput = document.getElementById('destination');
+    if (!destinationInput) return;
+    
+    const destination = destinationInput.value.trim();
+    if (!destination) {
+        showToast('Please enter a destination', 'warning');
+        return;
+    }
+    
+    if (!userLat || !userLng) {
+        showToast('Please enable location access first', 'warning');
+        return;
+    }
+
+    const emptyState = document.getElementById('emptyState');
+    if (emptyState) emptyState.style.display = 'none';
+    
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) loadingEl.style.display = 'block';
+    
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) {
+        searchBtn.disabled = true;
+        searchBtn.innerHTML = '<span class="spinner"></span> Searching...';
+    }
+
+    // Clear previous results
+    allPlaces = [];
+    const resultsDiv = document.getElementById('results');
+    if (resultsDiv) resultsDiv.innerHTML = '';
+
+    if (!hasApiKey) {
+        // Demo mode
+        setTimeout(showDemoResults, 1500);
+        return;
+    }
+
+    const mapContainer = document.getElementById('mapContainer');
+    if (mapContainer) mapContainer.style.display = 'block';
+
+    const request = {
+        origin: { lat: userLat, lng: userLng },
+        destination: destination,
+        travelMode: 'WALKING',
+        provideRouteAlternatives: false
+    };
+
+    directionsService.route(request, (result, status) => {
+        if (status === 'OK') {
+            directionsRenderer.setDirections(result);
+            
+            // Fit map to route bounds
+            const bounds = new google.maps.LatLngBounds();
+            result.routes[0].legs[0].steps.forEach(step => {
+                bounds.union(step.lat_lngs);
+            });
+            map.fitBounds(bounds);
+            
+            searchPlacesAlongRoute(result.routes[0]);
+        } else {
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (searchBtn) {
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = 'Find Places Along Route';
+            }
+            
+            if (status === 'ZERO_RESULTS') {
+                showToast('No route found. Try a different destination.', 'error');
+            } else {
+                showToast('Could not find route. Please try again.', 'error');
+            }
+        }
+    });
+}
+
+function searchPlacesAlongRoute(route) {
+    const waypoints = route.overview_path;
+    const searchRadius = 500;
+    const samplePoints = [];
+    const step = Math.max(1, Math.floor(waypoints.length / 10));
+
+    for (let i = 0; i < waypoints.length; i += step) {
+        if (samplePoints.length < 20) { // Limit to 20 search points
+            samplePoints.push(waypoints[i]);
+        }
+    }
+
+    let searchesCompleted = 0;
+    const totalSearches = samplePoints.length * 2;
+    const placeSet = new Set(); // Use Set to avoid duplicates
+
+    if (totalSearches === 0) {
+        displayRealResults();
+        return;
+    }
+
+    samplePoints.forEach((point) => {
+        ['restaurant', 'tourist_attraction'].forEach((type) => {
+            const request = {
+                location: point,
+                radius: searchRadius,
+                type: type,
+                rankBy: google.maps.places.RankBy.PROMINENCE
+            };
+
+            placesService.nearbySearch(request, (results, status, pagination) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    results.forEach((place) => {
+                        if (!placeSet.has(place.place_id)) {
+                            place.category = type;
+                            allPlaces.push(place);
+                            placeSet.add(place.place_id);
+                        }
+                    });
+                }
+                
+                searchesCompleted++;
+                if (searchesCompleted === totalSearches) {
+                    displayRealResults();
+                }
+            });
+        });
+    });
+}
+
+function displayRealResults() {
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) loadingEl.style.display = 'none';
+    
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) {
+        searchBtn.disabled = false;
+        searchBtn.innerHTML = 'Find Places Along Route';
+    }
+
+    const filtersEl = document.getElementById('filters');
+    if (filtersEl) filtersEl.style.display = 'flex';
+
+    // Sort by rating and distance
+    allPlaces.sort((a, b) => {
+        const ratingDiff = (b.rating || 0) - (a.rating || 0);
+        if (ratingDiff !== 0) return ratingDiff;
+        
+        // Add distance calculation here if needed
+        return 0;
+    });
+
+    allPlaces = allPlaces.slice(0, 50); // Limit results
+    displayFilteredResults();
+    
+    // Show result count
+    showToast(`Found ${allPlaces.length} places along your route`, 'success');
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, initializing app...');
+    
+    getUserLocation();
+    
+    // Add Enter key support for destination input
+    const destinationInput = document.getElementById('destination');
+    if (destinationInput) {
+        destinationInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchRoute();
+            }
+        });
+    }
+    
+    // Load Google Maps if API key is available
+    if (hasApiKey && typeof google === 'undefined') {
+        console.log('Loading Google Maps API...');
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places&callback=initMap`;
         script.async = true;
         script.defer = true;
+        script.onerror = () => {
+            console.error('Failed to load Google Maps API');
+            showToast('Failed to load Google Maps. Check your API key.', 'error');
+        };
         document.head.appendChild(script);
+    } else if (!hasApiKey) {
+        console.warn('Running in demo mode - no API key configured');
+        showToast('Running in demo mode', 'info');
     }
-};
+});

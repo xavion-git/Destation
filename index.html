@@ -1,13 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#2563eb" />
-    <title>Xavions Japan Route Finder</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- PWA meta -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#2563eb">
+
+  <!-- Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+
+  <title>Xavions Japan Route Finder</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="header">
@@ -58,6 +67,12 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+<script src="script.js"></script>
+
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZjgrXCPheK5GZuTanUrt4zfQBIksfkwE&libraries=places&callback=initMap"
+  async
+  defer
+></script>
 </body>
 </html>

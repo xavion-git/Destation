@@ -360,10 +360,11 @@ function searchRoute() {
             
             // Fit map to route bounds
             const bounds = new google.maps.LatLngBounds();
-            result.routes[0].legs[0].steps.forEach(step => {
-                bounds.union(step.lat_lngs);
+            result.routes[0].overview_path.forEach(point => {
+                bounds.extend(point);
             });
-            map.fitBounds(bounds);
+
+map.fitBounds(bounds);
             
             searchPlacesAlongRoute(result.routes[0]);
         } else {
@@ -408,10 +409,8 @@ function searchPlacesAlongRoute(route) {
             const request = {
                 location: point,
                 radius: searchRadius,
-                type: type,
-                rankBy: google.maps.places.RankBy.PROMINENCE
+                type: type
             };
-
             placesService.nearbySearch(request, (results, status, pagination) => {
                 if (status === google.maps.places.PlacesServiceStatus.OK) {
                     results.forEach((place) => {

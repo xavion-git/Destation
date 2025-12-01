@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#2563eb">
+    <title>Xavions Japan Destination Finder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <h1>🗾 Xavions Japan Route Finder</h1>
+        <p>Discover food & activities along your way</p>
+    </div>
+    
+    <div class="container">
+
+        <div class="search-card">
+            <div class="input-group">
+                <label>📍 Current Location</label>
+                <input type="text" id="currentLocation" placeholder="e.g., Shibuya Station" value="Getting your location...">
+                <button class="btn-location" onclick="getUserLocation()">
+                    📍 Use My Current Location
+                </button>
+            </div>
+            
+            <div class="input-group">
+                <label>🎯 Destination</label>
+                <input type="text" id="destination" placeholder="e.g., Tokyo Tower">
+            </div>
+            
+            <button class="btn-primary" id="searchBtn" onclick="searchRoute()">Find Places Along Route</button>
+        </div>
+        
+        <div id="mapContainer" style="display: none;">
+            <div class="map-container">
+                <div id="map"></div>
+            </div>
+        </div>
+        
+        <div id="filters" style="display: none;" class="filters">
+            <button class="filter-btn active" onclick="filterPlaces('all')">All</button>
+            <button class="filter-btn" onclick="filterPlaces('restaurant')">🍜 Food</button>
+            <button class="filter-btn" onclick="filterPlaces('tourist_attraction')">🎌 Shit To Do</button>
+        </div>
+        
+        <div id="loading" style="display: none;" class="loading">
+            <p>🔍 Searching for places ninja, so just wait...</p>
+        </div>
+        
+        <div id="results"></div>
+        
+        <div class="empty-state" id="emptyState">
+            <p style="font-size: 48px; margin-bottom: 16px;">🗺️</p>
+            <p>Enter where you want to go bastard. I'm waiting...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

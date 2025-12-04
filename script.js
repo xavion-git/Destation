@@ -1,4 +1,5 @@
 "use strict";
+import 'dotenv/config';
 
 let currentFilter = 'all';
 let userLat = null;
@@ -13,7 +14,7 @@ let allPlaces = [];
 // 1. Create a backend proxy server, OR
 // 2. Restrict this API key to your domain only in Google Cloud Console
 // 3. Use environment variables with a build tool (Vite, Webpack)
-const API_KEY = 'AIzaSyBZjgrXCPheK5GZuTanUrt4zfQBIksfkwE';
+const API_KEY = process.env.API_KEY;
 // FIXED: Changed the logic - check if it's not the placeholder
 const hasApiKey = API_KEY && API_KEY !== '' && !API_KEY.includes('YOUR_API_KEY_HERE');
 
@@ -361,7 +362,10 @@ function searchRoute() {
             // Fit map to route bounds
             const bounds = new google.maps.LatLngBounds();
             result.routes[0].overview_path.forEach(point => {
-                bounds.extend(point);
+                bounds.extend({
+                    lat: typeof point.lat === "function" ? point.lat() : point.lat,
+                    lng: typeof point.lng === "function" ? point.lng() : point.lng
+                });
             });
 
 map.fitBounds(bounds);
@@ -407,7 +411,10 @@ function searchPlacesAlongRoute(route) {
     samplePoints.forEach((point) => {
         ['restaurant', 'tourist_attraction'].forEach((type) => {
             const request = {
-                location: point,
+                 location: {
+                    lat: typeof point.lat === "function" ? point.lat() : point.lat,
+                    lng: typeof point.lng === "function" ? point.lng() : point.lng
+                    },
                 radius: searchRadius,
                 type: type
             };

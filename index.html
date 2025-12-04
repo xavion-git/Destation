@@ -76,57 +76,63 @@
         background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
     }
   </style>
-</head>
 <body>
-    <div class="header">
-        <h1>🗾 Xavions Japan Route Finder</h1>
-        <p>Discover food & activities along your way</p>
+  <div class="header">
+    <h1>🗾 Japan Route Finder</h1>
+    <p>Discover food & activities along your way</p>
+  </div>
+  
+  <div class="container">
+    <div class="api-setup" id="apiSetup">
+      <h3>🔑 Google Maps API Key Required</h3>
+      <p>To use real location data, you need a Google Maps API key. Get one for free at <a href="https://console.cloud.google.com/google/maps-apis" target="_blank">Google Cloud Console</a>.</p>
+      <p><strong>Enable these APIs:</strong> Maps JavaScript API, Places API, Directions API</p>
+      <input type="text" id="apiKeyInput" placeholder="Enter your API key here">
+      <button onclick="saveApiKey()">Save & Load Maps</button>
+    </div>
+
+    <div class="search-card" id="searchCard" style="display:none;">
+      <div class="input-group">
+        <label>📍 Current Location</label>
+        <input type="text" id="currentLocation" placeholder="e.g., Shibuya Station">
+        <button class="btn-location" onclick="getUserLocation()">
+          📍 Use My Current Location
+        </button>
+      </div>
+      
+      <div class="input-group">
+        <label>🎯 Destination</label>
+        <input type="text" id="destination" placeholder="e.g., Tokyo Tower">
+      </div>
+      
+      <button class="btn-primary" id="searchBtn">Find Places Along Route</button>
     </div>
     
-    <div class="container">
-
-        <div class="search-card">
-            <div class="input-group">
-                <label>📍 Current Location</label>
-                <input type="text" id="currentLocation" placeholder="e.g., Shibuya Station" value="Getting your location...">
-                <button class="btn-location" id="locationBtn">
-                    📍 Use My Current Location
-                </button>
-            </div>
-            
-            <div class="input-group">
-                <label>🎯 Destination</label>
-                <input type="text" id="destination" placeholder="e.g., Tokyo Tower">
-            </div>
-            
-            <button class="btn-primary" id="searchBtn">Find Places Along Route</button>
-        </div>
-        
-        <div id="mapContainer" style="display: none;">
-            <div class="map-container">
-                <div id="map"></div>
-            </div>
-        </div>
-        
-        <div id="filters" style="display: none;" class="filters">
-            <button class="filter-btn active" onclick="filterPlaces('all')">All</button>
-            <button class="filter-btn" onclick="filterPlaces('restaurant')">🍜 Food</button>
-            <button class="filter-btn" onclick="filterPlaces('tourist_attraction')">🎌 Shit To Do</button>
-        </div>
-        
-        <div id="loading" style="display: none;" class="loading">
-            <p>🔍 Searching for places ninja, so just wait...</p>
-        </div>
-        
-        <div id="results"></div>
-        
-        <div class="empty-state" id="emptyState">
-            <p style="font-size: 48px; margin-bottom: 16px;">🗺️</p>
-            <p>Enter where you want to go bastard. I'm waiting...</p>
-        </div>
+    <div id="mapContainer" style="display: none;">
+      <div class="map-container">
+        <div id="map"></div>
+      </div>
     </div>
+    
+    <div id="filters" style="display: none;" class="filters">
+      <button class="filter-btn active">All</button>
+      <button class="filter-btn">🍜 Food</button>
+      <button class="filter-btn">🎌 Activities</button>
+    </div>
+    
+    <div id="loading" style="display: none;" class="loading">
+      <p>🔍 Searching for places...</p>
+    </div>
+    
+    <div id="results"></div>
+    
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <p style="font-size: 48px; margin-bottom: 16px;">🗺️</p>
+      <p>Enter your destination to find amazing places along your route!</p>
+    </div>
+  </div>
 
-<script src="script.js"></script>
+<script type="module" src="script.js"></script>
 
 <!-- Google Maps will be loaded dynamically by script.js -->
  <!--Loaded API-->
